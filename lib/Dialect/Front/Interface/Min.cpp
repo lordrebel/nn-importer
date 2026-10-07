@@ -1,0 +1,46 @@
+
+
+#include "Support/Dnnl/Dnnl.h"
+#include "Support/Module.h"
+
+int64_t front::MinOp::getFLOPs() { return module::getNumElements(getOutput()); }
+
+LogicalResult front::MinOp::init(InferenceParameter &p) {
+  auto binary = new Binary();
+  auto lhs_shape = module::getShape(getInputs()[0]);
+  auto rhs_shape = module::getShape(getInputs()[1]);
+
+  (*binary)
+      .hs(p.inputs[0], p.inputs[1], lhs_shape, rhs_shape)
+      .dst(p.outputs[0], module::getShape(getOutput()))
+      .algorithem(algorithm::binary_min)
+      .setup();
+
+  p.handle = (void *)binary;
+
+  return success();
+}
+void front::MinOp::deinit(InferenceParameter &p) {
+  if (p.handle != nullptr) {
+    auto binary = (Binary *)p.handle;
+    delete binary;
+    p.handle = nullptr;
+  }
+}
+
+LogicalResult front::MinOp::inference(InferenceParameter &p) {
+  if (p.handle == nullptr) {
+    return failure();
+  }
+  auto binary = (Binary *)p.handle;
+  binary->run();
+  return success();
+}
+
+void front::MinOp::shape_inference() {
+  broadcast_shape_inference(getOperation());
+  for (int i = 0; i < getNumOperands(); i++) {
+    auto value = getInputs()[i];
+    broadcast_tensor_reshape(getOutput(), value);
+  }
+}

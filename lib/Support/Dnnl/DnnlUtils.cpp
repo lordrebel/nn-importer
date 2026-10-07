@@ -1,0 +1,18 @@
+
+
+#include "Support/Dnnl/DnnlUtils.h"
+using namespace dnnl;
+namespace im {
+
+void post_relu(primitive_attr &attr, bool &do_relu, double &relu_limit) {
+  post_ops ops;
+  if (do_relu) {
+    if (relu_limit > 0.f) {
+      ops.append_eltwise(algorithm::eltwise_clip, 0.0f, relu_limit);
+    } else {
+      ops.append_eltwise(algorithm::eltwise_relu, 0.0f, 0.0f);
+    }
+    attr.set_post_ops(ops);
+  }
+}
+} // namespace im

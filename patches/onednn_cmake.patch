@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index df7893a13d..60fa3ea791 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -14,7 +14,7 @@
+ # limitations under the License.
+ #===============================================================================
+ 
+-cmake_minimum_required(VERSION 2.8.12)
++cmake_minimum_required(VERSION 3.8)
+ 
+ if(POLICY CMP0022)
+     cmake_policy(SET CMP0022 NEW)

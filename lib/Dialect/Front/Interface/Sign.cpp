@@ -1,0 +1,31 @@
+
+
+#include "Support/MathUtil.h"
+#include "Support/Module.h"
+
+int64_t front::SignOp::getFLOPs() {
+  return module::getNumElements(getInput()) * 3;
+}
+
+LogicalResult front::SignOp::init(InferenceParameter &p) { return success(); }
+void front::SignOp::deinit(InferenceParameter &p) {}
+
+LogicalResult front::SignOp::inference(InferenceParameter &p) {
+  auto num_element = module::getNumElements(getInput());
+#pragma omp parallel for schedule(static, omp_schedule(num_element))
+  for (int i = 0; i < num_element; ++i) {
+    auto val = p.inputs[0][i];
+    if (val > 0) {
+      p.outputs[0][i] = 1;
+    } else if (val < 0) {
+      p.outputs[0][i] = -1;
+    } else {
+      p.outputs[0][i] = 0;
+    }
+  }
+  return success();
+}
+
+void front::SignOp::shape_inference() {
+  common_shape_inference(getOperation());
+}

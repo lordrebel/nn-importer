@@ -1,0 +1,3 @@
+add_mlir_interface(InferenceInterface)
+add_mlir_interface(ShapeInterface)
+add_mlir_interface(FlopsInterface)

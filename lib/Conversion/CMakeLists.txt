@@ -1,0 +1,2 @@
+add_subdirectory(FrontToLinalg)
+add_subdirectory(FrontToTosa)

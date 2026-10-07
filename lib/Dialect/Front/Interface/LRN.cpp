@@ -1,0 +1,44 @@
+
+
+#include "Support/Dnnl/Dnnl.h"
+#include "Support/Module.h"
+int64_t front::LRNOp::getFLOPs() {
+  int64_t n, c, h, w;
+  module::getNCHW(getInput(), n, c, h, w);
+  return module::getNumElements(getInput()) *
+         (5 /*eltwise gops*/ +
+          (c - getSize()) /*fully reduce sum*/ * (getSize() - 1) /*sum gops*/ -
+          getSize() /*fix edge split*/);
+}
+
+LogicalResult front::LRNOp::init(InferenceParameter &p) {
+  auto lrn = new LRN();
+  (*lrn)
+      .src(p.inputs[0], module::getShape(getInput()))
+      .dst(p.outputs[0], module::getShape(getOutput()))
+      .size(getSize())
+      .param(getAlpha().convertToDouble(), getBeta().convertToDouble(),
+             getBias().convertToDouble())
+      .algorithem(algorithm::lrn_across_channels)
+      .setup();
+
+  p.handle = (void *)lrn;
+  return success();
+}
+void front::LRNOp::deinit(InferenceParameter &p) {
+  if (p.handle != nullptr) {
+    auto lrn = (LRN *)p.handle;
+    delete lrn;
+    p.handle = nullptr;
+  }
+}
+
+LogicalResult front::LRNOp::inference(InferenceParameter &p) {
+  if (p.handle == nullptr)
+    return failure();
+  auto lrn = (LRN *)p.handle;
+  lrn->run();
+  return success();
+}
+
+void front::LRNOp::shape_inference() { common_shape_inference(getOperation()); }

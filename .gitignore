@@ -1,0 +1,7 @@
+build/**
+install/**
+__pycache__/**
+**/__pycache__
+.vscode
+pyenv
+models
